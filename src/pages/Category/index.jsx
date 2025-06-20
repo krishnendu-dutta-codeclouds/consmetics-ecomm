@@ -1,78 +1,56 @@
-import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import ProductGrid from '../../components/product/ProductGrid';
-import Testimonials from '../../components/common/Testimonials';
-import { useEffect, useState } from 'react';
 import productData from '../../product.json';
 
-const categoryNames = {
-  makeup: 'Makeup',
-  haircare: 'Haircare',
-  fragrance: 'Fragrance',
-  skincare: 'Skincare',
-};
+const categoryInfo = [
+  {
+    key: 'makeup',
+    name: 'Makeup',
+    banner: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    key: 'haircare',
+    name: 'Haircare',
+    banner: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    key: 'fragrance',
+    name: 'Fragrance',
+    banner: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    key: 'skincare',
+    name: 'Skincare',
+    banner: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
+  },
+];
 
-const categoryBanners = {
-  makeup: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80',
-  haircare: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1200&q=80',
-  fragrance: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
-  skincare: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
-};
-
-const CategoryPage = () => {
-  const { category } = useParams();
-  const categoryKey = category?.toLowerCase();
-  const [products, setProducts] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Use src/product.json for products and testimonials
-    const allProducts = productData.products || [];
-    const filteredProducts = allProducts.filter(
-      p => p.category && p.category.toLowerCase() === categoryKey
-    );
-    setProducts(filteredProducts);
-
-    // Gather testimonials for this category from products
-    const categoryTestimonials = [];
-    filteredProducts.forEach(product => {
-      if (product.testimonials && product.testimonials.length > 0) {
-        product.testimonials.forEach(t =>
-          categoryTestimonials.push({
-            ...t,
-            productId: product.id,
-            productTitle: product.title,
-            category: product.category,
-          })
-        );
-      }
-    });
-    setTestimonials(categoryTestimonials);
-    setLoading(false);
-  }, [categoryKey]);
-
-  const displayName = categoryNames[categoryKey] || category;
-  const bannerUrl = categoryBanners[categoryKey];
-
-  if (loading) return <div>Loading...</div>;
+const CategoryListPage = () => {
+  const allProducts = productData.products || [];
 
   return (
     <Container>
-      {bannerUrl && (
-        <Banner style={{ backgroundImage: `url(${bannerUrl})` }}>
-          <BannerOverlay>
-            <BannerTitle>{displayName}</BannerTitle>
-          </BannerOverlay>
-        </Banner>
-      )}
-      <h1 style={{ marginTop: bannerUrl ? 40 : 0 }}>{displayName} Products</h1>
-      {products.length === 0 ? (
-        <EmptyMsg>No products found in this category.</EmptyMsg>
-      ) : (
-        <ProductGrid products={products} />
-      )}
-      <Testimonials testimonials={testimonials} />
+      <h1 style={{ textAlign: 'center', marginBottom: 40 }}>Shop by Category</h1>
+      {categoryInfo.map(cat => {
+        const products = allProducts.filter(
+          p => p.category && p.category.toLowerCase() === cat.key
+        ).slice(0, 4);
+
+        return (
+          <CategorySection key={cat.key}>
+            <Banner style={{ backgroundImage: `url(${cat.banner})` }}>
+              <BannerOverlay>
+                <CategoryTitle>
+                  <Link to={`/category/${cat.key}`}>{cat.name}</Link>
+                </CategoryTitle>
+              </BannerOverlay>
+            </Banner>
+            <ProductGrid products={products} />
+            <ViewAllLink to={`/category/${cat.key}`}>View all {cat.name} products →</ViewAllLink>
+          </CategorySection>
+        );
+      })}
     </Container>
   );
 };
@@ -83,13 +61,17 @@ const Container = styled.div`
   padding: 30px 20px;
 `;
 
+const CategorySection = styled.section`
+  margin-bottom: 60px;
+`;
+
 const Banner = styled.div`
   width: 100%;
   height: 220px;
   background-size: cover;
   background-position: center;
   border-radius: 12px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   position: relative;
   overflow: hidden;
 `;
@@ -103,18 +85,34 @@ const BannerOverlay = styled.div`
   padding: 30px;
 `;
 
-const BannerTitle = styled.h1`
+const CategoryTitle = styled.h2`
   color: #fff;
-  font-size: 38px;
+  font-size: 32px;
   font-weight: bold;
   margin: 0;
   text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+      color: #e74c3c;
+    }
+  }
 `;
 
-const EmptyMsg = styled.div`
-  text-align: center;
-  color: #888;
-  margin: 40px 0;
+const ViewAllLink = styled(Link)`
+  display: inline-block;
+  margin-top: 10px;
+  color: #e74c3c;
+  font-weight: 500;
+  font-size: 15px;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
-export default CategoryPage;
+export default CategoryListPage;
+

@@ -27,7 +27,7 @@ const CartPage = () => {
     <CartContainer>
       <CartHeader>
         <h2>Your Cart ({items.length})</h2>
-        <ClearButton onClick={() => dispatch(clearCart())}>
+        <ClearButton onClick={() => dispatch(clearCart())} data-tooltip="Clear all items from cart">
           Clear Cart
         </ClearButton>
       </CartHeader>
@@ -59,11 +59,11 @@ const CartPage = () => {
           <span>${total.toFixed(2)}</span>
         </SummaryRow>
         
-        <Button as={Link} to="/checkout" fullWidth>
+        <Button as={Link} to="/checkout" fullWidth tooltip="Proceed to Checkout">
           Proceed to Checkout
         </Button>
         
-        <ContinueShopping as={Link} to="/products">
+        <ContinueShopping as={Link} to="/products" data-tooltip="Continue shopping">
           Continue Shopping
         </ContinueShopping>
       </CartSummary>

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleCart } from '../../redux/slices/cartSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../../redux/slices/authSlice';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -13,6 +13,17 @@ const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  useEffect(() => {
+    const updateWishlistCount = () => {
+      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      setWishlistCount(wishlist.length);
+    };
+    updateWishlistCount();
+    window.addEventListener('storage', updateWishlistCount);
+    return () => window.removeEventListener('storage', updateWishlistCount);
+  }, []);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -21,29 +32,37 @@ const Header = () => {
 
   return (
     <HeaderContainer>
-      <Logo to="/">ShopEase</Logo>
+      <Logo to="/" title="Go to Home">ShopEase</Logo>
       <Nav>
-        <NavLink to="/">Home</NavLink>
-        <NavLink to="/products">Products</NavLink>
+        <NavLink to="/" title="Home">Home</NavLink>
+        <NavLink to="/products" title="Browse all products">Products</NavLink>
         <CategoryDropdown
           tabIndex={0}
           onMouseEnter={() => setCatDropdownOpen(true)}
           onMouseLeave={() => setCatDropdownOpen(false)}
           onFocus={() => setCatDropdownOpen(true)}
           onBlur={e => {
-            // Only close if focus moves outside the dropdown
             if (!e.currentTarget.contains(e.relatedTarget)) setCatDropdownOpen(false);
           }}
         >
-          <NavLink as="span" aria-haspopup="true" aria-expanded={catDropdownOpen}>Categories</NavLink>
+          <NavLink
+            as={Link}
+            to="/category"
+            aria-haspopup="true"
+            aria-expanded={catDropdownOpen}
+            title="Browse by category"
+          >
+            Categories
+          </NavLink>
           <CategoryMenu $open={catDropdownOpen}>
-            <CategoryMenuItem to="/category/makeup">Makeup</CategoryMenuItem>
-            <CategoryMenuItem to="/category/haircare">Haircare</CategoryMenuItem>
-            <CategoryMenuItem to="/category/fragrance">Fragrance</CategoryMenuItem>
-            <CategoryMenuItem to="/category/skincare">Skincare</CategoryMenuItem>
+            <CategoryMenuItem to="/category/makeup" title="Makeup">Makeup</CategoryMenuItem>
+            <CategoryMenuItem to="/category/haircare" title="Haircare">Haircare</CategoryMenuItem>
+            <CategoryMenuItem to="/category/fragrance" title="Fragrance">Fragrance</CategoryMenuItem>
+            <CategoryMenuItem to="/category/skincare" title="Skincare">Skincare</CategoryMenuItem>
+            <CategoryMenuItem to="/category" title="All Categories">All Categories</CategoryMenuItem>
           </CategoryMenu>
         </CategoryDropdown>
-        <NavLink to="/contact">Contact</NavLink>
+        <NavLink to="/contact" title="Contact us">Contact</NavLink>
       </Nav>
       <Icons>
         <UserDropdown
@@ -59,6 +78,7 @@ const Header = () => {
             aria-haspopup="true"
             aria-expanded={dropdownOpen}
             tabIndex={-1}
+            title={isAuthenticated ? "Account" : "Login/Register"}
           >
             <FaUser />
             {isAuthenticated && user?.firstName && (
@@ -68,21 +88,22 @@ const Header = () => {
           <DropdownMenu $open={dropdownOpen}>
             {!isAuthenticated ? (
               <>
-                <DropdownItem to="/login">Login</DropdownItem>
-                <DropdownItem to="/register">Register</DropdownItem>
+                <DropdownItem to="/login" title="Login">Login</DropdownItem>
+                <DropdownItem to="/register" title="Register">Register</DropdownItem>
               </>
             ) : (
               <>
-                <DropdownItem to="/account">My Account</DropdownItem>
-                <DropdownButton onClick={handleLogout}>Logout</DropdownButton>
+                <DropdownItem to="/account" title="My Account">My Account</DropdownItem>
+                <DropdownButton onClick={handleLogout} title="Logout">Logout</DropdownButton>
               </>
             )}
           </DropdownMenu>
         </UserDropdown>
-        <WishlistButton as={Link} to="/wishlist" aria-label="Wishlist">
+        <WishlistButton as={Link} to="/wishlist" aria-label="Wishlist" title="View Wishlist">
           <FaHeart />
+          {wishlistCount > 0 && <WishlistCount>{wishlistCount}</WishlistCount>}
         </WishlistButton>
-        <CartButton onClick={() => dispatch(toggleCart())}>
+        <CartButton onClick={() => dispatch(toggleCart())} title="View Cart">
           <FaShoppingCart />
           {items.length > 0 && <CartCount>{items.length}</CartCount>}
         </CartButton>
@@ -219,7 +240,7 @@ const CategoryDropdown = styled.div`
   display: flex;
   align-items: center;
   outline: none;
-  cursor: pointer; /* Show pointer on hover */
+  cursor: pointer;
 `;
 
 const CategoryMenu = styled.div`
@@ -252,7 +273,7 @@ const CategoryMenuItem = styled(Link)`
   border: none;
   text-align: left;
   transition: background 0.15s, color 0.15s;
-  cursor: pointer; /* Show pointer on hover */
+  cursor: pointer;
 
   &:hover, &:focus {
     background: #f5f5f5;
@@ -270,10 +291,26 @@ const WishlistButton = styled(Link)`
   align-items: center;
   cursor: pointer;
   padding: 0 2px;
+  position: relative;
 
   &:hover {
     color: #c0392b;
   }
+`;
+
+const WishlistCount = styled.span`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff6b6b;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
 `;
 
 const CartButton = styled.button`

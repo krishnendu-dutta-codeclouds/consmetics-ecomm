@@ -66,6 +66,7 @@ const ProductCard = ({ product }) => {
           onClick={handleAddToWishlist}
           wished={isWished ? 1 : 0}
           title={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
+          data-tooltip={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <FaHeart />
         </WishlistIcon>
@@ -89,15 +90,19 @@ const ProductCard = ({ product }) => {
             <RatingValue>{product.rating ? product.rating.toFixed(1) : '4.0'}</RatingValue>
           </RatingLine>
         </PriceRatingRow>
-        <ButtonRow>
-          <ActionButton onClick={handleAddToCart} as="button" type="button">
-            Add to Cart
-          </ActionButton>
-          <ActionButton as={Link} to={`/products/${product.id}`} variant="outline">
-            View Product
-          </ActionButton>
-        </ButtonRow>
       </Details>
+      <FixedButtonRow>
+        <TooltipButtonWrapper>
+          <Button onClick={handleAddToCart} tooltip="Add to Cart">
+            Add to Cart
+          </Button>
+        </TooltipButtonWrapper>
+        <TooltipButtonWrapper>
+          <Button to={`/products/${product.id}`} variant="outline" tooltip="View Product">
+            View Product
+          </Button>
+        </TooltipButtonWrapper>
+      </FixedButtonRow>
       {/* No in-card toast */}
     </Card>
   );
@@ -106,10 +111,13 @@ const ProductCard = ({ product }) => {
 const Card = styled.div`
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   &:hover {
     transform: translateY(-5px);
@@ -134,10 +142,19 @@ const WishlistIcon = styled.button`
   z-index: 2;
   cursor: pointer;
   transition: color 0.2s;
+  overflow: visible;
 
   &:hover {
     color: #e74c3c;
   }
+  /* Tooltip styles removed, now handled by globalStyles.js */
+`;
+
+const TooltipButtonWrapper = styled.div`
+  position: relative;
+  flex: 1;
+  overflow: visible;
+  /* Tooltip styles removed, now handled by globalStyles.js */
 `;
 
 const Image = styled.img`
@@ -151,6 +168,7 @@ const Details = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1 1 auto;
 `;
 
 const Title = styled.h3`
@@ -208,32 +226,13 @@ const RatingValue = styled.span`
   font-weight: 500;
 `;
 
-const ButtonRow = styled.div`
+const FixedButtonRow = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 6px;
-`;
-
-const ActionButton = styled(Link).attrs(props => ({
-  as: props.as || Link,
-}))`
-  flex: 1;
-  text-align: center;
-  padding: 8px 0;
-  border-radius: 4px;
-  border: 1.5px solid #333;
-  background: ${({ variant }) => (variant === 'outline' ? '#fff' : '#333')};
-  color: ${({ variant }) => (variant === 'outline' ? '#333' : '#fff')};
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.18s, color 0.18s;
-  cursor: pointer;
-  text-decoration: none;
-  &:hover {
-    background: ${({ variant }) => (variant === 'outline' ? '#333' : '#222')};
-    color: #fff;
-    text-decoration: none;
-  }
+  gap: 0;
+  width: 100%;
+  border-top: 1px solid #eee;
+  background: #fff;
+  overflow: visible;
 `;
 
 // Add global styles for the toast

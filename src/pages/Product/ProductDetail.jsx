@@ -71,7 +71,7 @@ const ProductDetail = () => {
           />
           <QuantityButton onClick={() => setQuantity(quantity + 1)}>+</QuantityButton>
         </QuantityControl>
-        <Button onClick={handleAddToCart} fullWidth>
+        <Button onClick={handleAddToCart} fullWidth tooltip="Add to Cart">
           Add to Cart
         </Button>
       </ProductInfo>

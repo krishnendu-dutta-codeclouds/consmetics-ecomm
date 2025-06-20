@@ -16,6 +16,7 @@ const NotFound = lazy(() => import('./pages/404'));
 const Wishlist = lazy(() => import('./pages/Wishlist/index.jsx'));
 const Contact = lazy(() => import('./pages/Contact/index.jsx'));
 const CategoryPage = lazy(() => import('./pages/Category/index.jsx'));
+const AllCategoriesPage = lazy(() => import('./pages/Category/AllCategories.jsx'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation.jsx'));
 
 const PrivateRoute = ({ children }) => {
@@ -45,6 +46,7 @@ const AppRoutes = () => {
           <Route path="cart" element={<Cart />} />
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="category" element={<AllCategoriesPage />} />
           <Route path="category/:category" element={<CategoryPage />} />
           <Route path="checkout" element={
             <PrivateRoute>

@@ -2,72 +2,114 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleCart, removeFromCart, updateQuantity, clearCart } from '../../redux/slices/cartSlice';
-import  Button  from '../common/Button';
+import Button from '../common/Button';
 import CartItem from './CartItem';
 import { useNavigate } from 'react-router-dom';
+import { useRef, useEffect } from 'react';
 
 const CartSidebar = () => {
   const dispatch = useDispatch();
   const { items, isCartOpen } = useSelector((state) => state.cart);
   const navigate = useNavigate();
+  const sidebarRef = useRef();
+
+  // Close cart when clicking outside the sidebar
+  useEffect(() => {
+    if (!isCartOpen) return;
+    const handleClick = (e) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+        dispatch(toggleCart());
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isCartOpen, dispatch]);
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <AnimatePresence>
       {isCartOpen && (
-        <CartContainer
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'tween' }}
+        <Overlay
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
-          <CartHeader>
-            <h3>Your Cart ({items.length})</h3>
-            <CloseButton onClick={() => dispatch(toggleCart())}>×</CloseButton>
-          </CartHeader>
-          
-          <CartItems>
-            {items.length === 0 ? (
-              <EmptyCart>Your cart is empty</EmptyCart>
-            ) : (
-              items.map((item) => (
-                <CartItem
-                  key={item.id}
-                  item={item}
-                  onRemove={() => dispatch(removeFromCart(item.id))}
-                  onQuantityChange={(quantity) => 
-                    dispatch(updateQuantity({ id: item.id, quantity }))
-                  }
-                />
-              ))
-            )}
-          </CartItems>
-          
-          <CartFooter>
-            <Total>
-              <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
-            </Total>
-            <Button 
-              fullWidth 
-              onClick={() => {
-                dispatch(toggleCart());
-                navigate('/checkout');
-              }}
-              disabled={items.length === 0}
-            >
-              Checkout
-            </Button>
-          </CartFooter>
-        </CartContainer>
+          <CartContainer
+            ref={sidebarRef}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'tween' }}
+          >
+            <CartHeader>
+              <h3>Your Cart ({items.length})</h3>
+              <CloseButton onClick={() => dispatch(toggleCart())} data-tooltip="Close Cart">×</CloseButton>
+            </CartHeader>
+            
+            <CartItems>
+              {items.length === 0 ? (
+                <EmptyCart>Your cart is empty</EmptyCart>
+              ) : (
+                items.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    onRemove={() => dispatch(removeFromCart(item.id))}
+                    onQuantityChange={(quantity) => 
+                      dispatch(updateQuantity({ id: item.id, quantity }))
+                    }
+                  />
+                ))
+              )}
+            </CartItems>
+            
+            <CartFooter>
+              <Total>
+                <span>Total:</span>
+                <span>${total.toFixed(2)}</span>
+              </Total>
+              <ButtonRow>
+                <CartActionButton 
+                  fullWidth 
+                  onClick={() => {
+                    dispatch(toggleCart());
+                    navigate('/checkout');
+                  }}
+                  disabled={items.length === 0}
+                  tooltip="Proceed to Checkout"
+                >
+                  Checkout
+                </CartActionButton>
+                <CartActionButton
+                  fullWidth
+                  variant="outline"
+                  onClick={() => dispatch(clearCart())}
+                  disabled={items.length === 0}
+                  tooltip="Clear all items from cart"
+                >
+                  Clear Cart
+                </CartActionButton>
+              </ButtonRow>
+            </CartFooter>
+          </CartContainer>
+        </Overlay>
       )}
     </AnimatePresence>
   );
 };
 
-const CartContainer = styled(motion.div)`
+const Overlay = styled(motion.div)`
   position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const CartContainer = styled(motion.div)`
+  position: relative;
   top: 0;
   right: 0;
   width: 100%;
@@ -118,6 +160,15 @@ const Total = styled.div`
   justify-content: space-between;
   margin-bottom: 20px;
   font-weight: bold;
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const CartActionButton = styled(Button)`
+  flex: 1;
 `;
 
 export default CartSidebar;
